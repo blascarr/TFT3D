@@ -1,7 +1,6 @@
 #define NODECOUNT 8
 #define TRICOUNT 12
 
-
 float nodes[NODECOUNT][3] = {
   {(float)(14.0), (float)(14.0), (float)(-14.0)},
   {(float)(14.0), (float)(-14.0), (float)(-14.0)},
@@ -39,30 +38,23 @@ unsigned char faces[TRICOUNT][3] = {
 #include <TFT3D.h>
 PDQ_ILI9341 tftdisplay;      // PDQ: create LCD object (using pins in "PDQ_ILI9341_config.h")
 
-//Adafruit_ILI9341 tftdisplay = Adafruit_ILI9341(TFT_CS, TFT_DC );
 TFT3D tft = TFT3D( tftdisplay );
 
-
-
 mesh model( nodes, faces );
-int rx,ry,rz,r;
+int r;
 
 void setup() {
-  // put your setup code here, to run once:
   tft.init();
   tftdisplay.fillScreen( GREEN );
-  tft.setMesh( &model );
-  //next_tick = last_btn = millis();
+
   model.setdraw_type(1);
   model.setskip_tick(5);
   model.setframe_skip(100);
+  model.set_tftsize( tftdisplay.width(), tftdisplay.height() );
 }
 
 void loop() {
-    model.update( r,r,0 );
+  model.update( abs(r%360 ), abs(r%360 ),0 );
   r++;
-  if(r>360){
-    r  = 0;
-    }
-  tft.draw(100);
+  model.draw( &tft );
 }

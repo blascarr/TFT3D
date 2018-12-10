@@ -62,8 +62,6 @@
 		};
 	#endif
 
-	
-
 	#ifndef TAB 
 		#define TAB ST7735_INITR_GREENTAB
 	#endif

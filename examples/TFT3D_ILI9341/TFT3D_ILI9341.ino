@@ -51,7 +51,6 @@ void setup() {
   tft.init();
   tftdisplay.fillScreen( GREEN );
   tft.setMesh( &model );
-  //next_tick = last_btn = millis();
   model.setdraw_type(1);
   model.setskip_tick(5);
   model.setframe_skip(100);
@@ -62,11 +61,8 @@ void setup() {
 
 void loop() {
   
-  model.update( r,r,0 );
+  model.update( r%360,r%360,0 );
   r++;
-  if(r>360){
-    r  = 0;
-    }
   tft.draw( 600 ); // Draw each timer milliseconds
 
 }
