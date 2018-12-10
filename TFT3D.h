@@ -175,6 +175,7 @@
           unsigned char SKIP_TICKS = 20;
           unsigned char MAX_FRAMESKIP = 5;
           int HALFW, HALFH;
+          uint16_t color[6]= {YELLOW,BLACK,YELLOW,BLACK,WHITE,GREEN };
 
           long next_tick;
           unsigned char draw_type = 1;          // 0 - vertex | 1 - wireframe | 2 - flat colors | ...
@@ -201,6 +202,28 @@
             mesh::draw_type = drawtype;
           }
 
+          void setColors( uint8_t colorpos, uint16_t colour ){
+              color[ colorpos ] = colour;
+          }
+
+          void setVertexColor( uint16_t front, uint16_t back ){
+              setColors(0 , front);
+              setColors(1 , back);
+          }
+
+          void setWireColor( uint16_t front, uint16_t back ){
+              setColors(2 , front);
+              setColors(3 , back);
+          }
+
+          void setClearColor( uint16_t clearcolor ){
+              setColors(4 , clearcolor);
+          }
+
+          void setFlatColor( uint16_t flatcolor ){
+              setColors(5 , flatcolor);
+          }
+
           void setskip_tick( unsigned char skip_tick ){
             mesh::SKIP_TICKS = skip_tick;
           }
@@ -217,9 +240,11 @@
             mesh::HALFH = posh;
             mesh::HALFW = posw;
           }
+
           void set_world( Matrix<4, 4, float> mworld ){
-            //mesh::HALFH = posh;
-            //mesh::HALFW = posw;
+            mesh::HALFW =  mworld(0,0);
+            mesh::HALFH =  mworld(1,0);
+            long z =  mworld(2,0);
           }
 
           //---------------------------------------------------------------------------------------------//
@@ -228,6 +253,7 @@
           int shoelace( const unsigned char index, boolean projnodes = true );
           bool is_hidden( const unsigned char index, boolean projnodes = true );
 
+          void update( Matrix <4, 4, float> matrix );
           void update( Matrix<4, 4, float> *f() );
           void update( int rotx, int roty, int rotz );
           void update_mesh( void *f()  );
@@ -316,6 +342,7 @@
 
       
       void mesh::update( Matrix<4, 4, float> *f() ){
+
         loops = 0;
         while( millis() > next_tick && loops < mesh::MAX_FRAMESKIP) {
           f();
@@ -342,9 +369,14 @@
       }
 
       void mesh::update( int rotx, int roty, int rotz ){
-        loops = 0;
 
         Matrix <4, 4, float> m_rot ( trotx(rotx)*troty(roty)*trotz(rotz) );
+        mesh::update(m_rot);
+
+      }
+
+      void mesh::update( Matrix <4, 4, float> matrix ){
+        loops = 0;
         
         while( millis() > next_tick && loops < mesh::MAX_FRAMESKIP) {
           
@@ -353,7 +385,7 @@
             float arrayNODES[4][1] = {mesh::nodes[i][0] ,mesh::nodes[i][1],mesh::nodes[i][2], 0};
             
             Matrix <4, 1, float> m_mesh (arrayNODES);
-            Matrix <4, 1, float> res = m_rot*m_mesh;
+            Matrix <4, 1, float> res = matrix*m_mesh;
 
             long x =  res(0,0);
             long y =  res(1,0);
@@ -362,12 +394,47 @@
             // store projected node // Siempre me da el mismo valor ¿?¿?¿?
             mesh::proj_nodes[i][0] = (FOV * x) / (FOV + z) + HALFW;
             mesh::proj_nodes[i][1] = (FOV * y) / (FOV + z) + HALFH;
+            
           }
           mesh::next_tick += mesh::SKIP_TICKS;
           loops++;
         }
       }
 
+      void mesh::update_mesh( void *f()  ){
+          loops = 0;
+          while( millis() > next_tick && loops < MAX_FRAMESKIP) {
+            f();
+
+            for (int i=0; i<NODECOUNT; i++) {
+              //DUMP (" X ", NODEFLOAT(i,0) );
+              //DUMP (" Y ", NODEFLOAT(i,1) );
+              //DUMP (" Z ", NODEFLOAT(i,2) );
+              //DUMPPRINTLN();
+              float arrayNODES[4][1] = {mesh::nodes[i][0] ,mesh::nodes[i][1],mesh::nodes[i][2], 0};
+              Matrix <4, 1, float> m_mesh (arrayNODES);
+
+              Matrix <4, 1, float> res = m_world*m_mesh;
+
+              long x =  res(0,0);
+              long y =  res(1,0);
+              long z =  res(2,0);
+              
+              // store projected node // Siempre me da el mismo valor ¿?¿?¿?
+              proj_nodes[i][0] = (FOV * x) / (FOV + z) + HALFW;
+              proj_nodes[i][1] = (FOV * y) / (FOV + z) + HALFH;
+
+              //DUMP("Node: ", i);
+              //DUMP (" dX ", x);DUMP (" dY ", y); DUMP (" dZ ", z);
+              //DUMPPRINTLN();
+              //DUMP (" X ", ((FOV * x) / (FOV + z) + HALFW));
+              //DUMP (" Y ", ((FOV * y) / (FOV + z) + HALFH));
+              //DUMPPRINTLN();
+            }
+            next_tick += SKIP_TICKS;
+            loops++;
+          }
+        }
 
       //-----------------------------------------------------------------------------------//
       //--------------------- Mesh Auxiliar Functions -------------------------------------//
@@ -561,24 +628,24 @@
 
             switch(mesh::draw_type) {
               case 0: 
-              mesh::draw_vertex( canvas, YELLOW,0);
-              mesh::draw_vertex( canvas, BLACK,1);
+              mesh::draw_vertex( canvas, color[0],0);
+              mesh::draw_vertex( canvas, color[1],1);
             break;
               case 1: if (TRICOUNT > 32) {
               mesh::clear_dirty( canvas, mesh::old_nodes);
             }
             else {
-              mesh::draw_wireframe( canvas, YELLOW,0);
-              mesh::draw_wireframe( canvas, BLACK,1);
+              mesh::draw_wireframe( canvas, color[2],0);
+              mesh::draw_wireframe( canvas, color[3],1);
             }
             break;
-            case 2: mesh::clear_dirty( canvas, WHITE, 0);
-              mesh::draw_flat_color( canvas, GREEN,1);
+            case 2: mesh::clear_dirty( canvas, color[4], 0);
+              mesh::draw_flat_color( canvas, color[5],1);
             break;
-            case 3: mesh::draw_flat_color( canvas, GREEN,1);
-              mesh::draw_wireframe( canvas, YELLOW,1);
+            case 3: mesh::draw_flat_color( canvas, color[4],1);
+              mesh::draw_wireframe( canvas, color[2],1);
             break;
-            case 4: mesh::draw_flat_color( canvas, GREEN,1);
+            case 4: mesh::draw_flat_color( canvas, color[5],1);
             break;
             }
             // copy projected nodes to old_nodes to check if we need to redraw next frame
@@ -588,39 +655,6 @@
           }
         }
 
-        void mesh::update_mesh( void *f()  ){
-          loops = 0;
-          while( millis() > next_tick && loops < MAX_FRAMESKIP) {
-            f();
 
-            for (int i=0; i<NODECOUNT; i++) {
-              //DUMP (" X ", NODEFLOAT(i,0) );
-              //DUMP (" Y ", NODEFLOAT(i,1) );
-              //DUMP (" Z ", NODEFLOAT(i,2) );
-              //DUMPPRINTLN();
-              float arrayNODES[4][1] = {mesh::nodes[i][0] ,mesh::nodes[i][1],mesh::nodes[i][2], 0};
-              Matrix <4, 1, float> m_mesh (arrayNODES);
-
-              Matrix <4, 1, float> res = m_world*m_mesh;
-
-              long x =  res(0,0);
-              long y =  res(1,0);
-              long z =  res(2,0);
-              
-              // store projected node // Siempre me da el mismo valor ¿?¿?¿?
-              proj_nodes[i][0] = (FOV * x) / (FOV + z) + HALFW;
-              proj_nodes[i][1] = (FOV * y) / (FOV + z) + HALFH;
-
-              //DUMP("Node: ", i);
-              //DUMP (" dX ", x);DUMP (" dY ", y); DUMP (" dZ ", z);
-              //DUMPPRINTLN();
-              //DUMP (" X ", ((FOV * x) / (FOV + z) + HALFW));
-              //DUMP (" Y ", ((FOV * y) / (FOV + z) + HALFH));
-              //DUMPPRINTLN();
-            }
-            next_tick += SKIP_TICKS;
-            loops++;
-          }
-        }
   #endif
 #endif
