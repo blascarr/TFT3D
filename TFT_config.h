@@ -1,4 +1,5 @@
-	
+#ifndef _TFTCONFIG_h
+  #define _TFTCONFIG_h 
 
 	#ifdef _ADAFRUIT_ILI9341H_
 
@@ -26,6 +27,20 @@
 		#define WHITE   0xFFFF
 	#endif	
 
+	#ifdef _PDQ_ST7735H_
+
+		#define BLACK   0x0001
+		#define BLUE    0x001F
+		#define RED     0xF800
+		#define GREEN   0x07E0
+		#define CYAN    0x07FF
+		#define MAGENTA 0xF81F
+		#define YELLOW  0xFFE0
+		#define ROSE 	0xF81F
+		#define WHITE   0xFFFF
+		
+	#endif	
+
 	#ifdef _ADAFRUIT_TFTLCD_H_
 		
 		#define BLACK   0x0000
@@ -39,7 +54,7 @@
 		#define WHITE   0xFFFF
 	#endif
 
-	#ifdef _ADAFRUIT_ST7735H_
+	#ifdef _ADAFRUIT_ST7735H_ 
 		#define BLACK 	0x000001
 		#define BLUE 	0x0000FF
 		#define RED     0xF800
@@ -50,20 +65,11 @@
 		#define YELLOW 	0x00FF00
 		#define ROSE 	0x99AA66
 		#define WHITE 	0xFFFFFF
-		enum{
-			ST7735_INITB      = 0,        // 1.8" (128x160) ST7735B chipset (only one type)
-			ST7735_INITR_GREENTAB   = 1,        // 1.8" (128x160) ST7735R chipset with green tab (same as ST7735_INITR_18GREENTAB)
-			ST7735_INITR_REDTAB   = 2,        // 1.8" (128x160) ST7735R chipset with red tab (same as ST7735_INITR_18REDTAB)
-			ST7735_INITR_BLACKTAB   = 3,        // 1.8" (128x160) ST7735S chipset with black tab (same as ST7735_INITR_18BLACKTAB)
-			ST7735_INITR_144GREENTAB  = 4,        // 1.4" (128x128) ST7735R chipset with green tab
-			ST7735_INITR_18GREENTAB   = ST7735_INITR_GREENTAB,  // 1.8" (128x160) ST7735R chipset with green tab
-			ST7735_INITR_18REDTAB   = ST7735_INITR_REDTAB,    // 1.8" (128x160) ST7735R chipset with red tab
-			ST7735_INITR_18BLACKTAB   = ST7735_INITR_BLACKTAB,  // 1.8" (128x160) ST7735S chipset with black tab
-		};
+		
 	#endif
 
 	#ifndef TAB 
-		#define TAB ST7735_INITR_GREENTAB
+		#define TAB 2
 	#endif
 	
 	//----------------------------------------//
@@ -146,3 +152,4 @@
 			return m;
 		}
 	#endif
+#endif
