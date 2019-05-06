@@ -121,7 +121,7 @@
 		}
 
 		Matrix<4,4, float> transl( float px, float py, float pz ){
-			float arrayRot[4][4] = { {0,0,0,px}, {0,0,0,py}, {0,0,0,pz}, {0,0,0,1}};
+			float arrayRot[4][4] = { {1,0,0,px}, {0,1,0,py}, {0,0,1,pz}, {0,0,0,1}};
 			Matrix <4, 4, float> m (arrayRot);
 			return m;
 		}
@@ -147,7 +147,7 @@
 		}
 
 		Matrix<4,4, float> transl( float px, float py, float pz ){
-			float arrayRot[4][4] = { {0,0,0,px}, {0,0,0,py}, {0,0,0,pz}, {0,0,0,1}};
+			float arrayRot[4][4] = { {1,0,0,px}, {0,1,0,py}, {0,0,1,pz}, {0,0,0,1}};
 			Matrix <4, 4, float> m (arrayRot);
 			return m;
 		}

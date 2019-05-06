@@ -38,6 +38,13 @@ class mesh{
 			mesh::setfaces( meshfaces );
 		}
 
+		void setmesh( Vector< vector3D > *meshnodes, Vector< point3D >  *meshfaces){
+			mesh::next_tick = millis();
+			mesh::setnodes( meshnodes );
+			mesh::setfaces( meshfaces );
+		}
+
+
 		void setnodes( Vector< vector3D > *meshnodes){
 			_nodes = meshnodes;
 			nodesize = meshnodes->Size();
@@ -86,8 +93,14 @@ class mesh{
 
 		void update( Matrix <4, 4, float> matrix );
 		void update( Matrix<4, 4, float> *f() );
-		void update( int rotx, int roty, int rotz );
+
+		void update( float rotx, float roty, float rotz );
+		void translate( float tx, float ty, float tz );
+
+		void update( float rotx, float roty, float rotz, float tx, float ty, float tz, float scale = 1 );
+
 		void update( void *f()  );
+
 		void update_mesh( Matrix <4, 4, float> m );
 
 		void draw( TFT3D *canvas, uint16_t timer = 10);
@@ -117,7 +130,6 @@ int mesh::shoelace( const unsigned char index, boolean projnodes ){
 	
 		//surface += (  matrix_ptr[ mesh::faces[index][t] ][0] * matrix_ptr[ mesh::faces[index][(t<2?t+1:0)] ][1] ) - ( matrix_ptr[ mesh::faces[index][(t<2?t+1:0)] ][0] * matrix_ptr[ mesh::faces[index][t] ][1] );
 	}
-	Serial.println( surface *0.5) ;
 	return surface *0.5;
 };
 
@@ -153,7 +165,7 @@ void mesh::update_mesh( Matrix <4, 4, float> m ){
 	
 	for (int i=0; i<nodesize; i++) {
 		
-		float arrayNODES[4][1] = { (*_nodes)[i](0,0) ,(*_nodes)[i](0,1), (*_nodes)[i](0,2), 0};
+		float arrayNODES[4][1] = { (*_nodes)[i](0,0) ,(*_nodes)[i](0,1), (*_nodes)[i](0,2), 1};
 
 		Matrix <4, 1, float> m_mesh (arrayNODES);
 		Matrix <4, 1, float> res = m*m_mesh;

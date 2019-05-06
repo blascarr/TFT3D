@@ -58,6 +58,8 @@
 				if (!mesh::is_hidden( i , projnodes)) {
 					
 					// draw triangle edges - 0 -> 1 -> 2 -> 0
+					//If out of canvas, not print
+					
 					canvas->_tft.drawLine(matrix_ptr[ (*_faces)[i](0,0)][0], matrix_ptr[ (*_faces)[i](0,0)][1], matrix_ptr[ (*_faces)[i](0,1)][0], matrix_ptr[ (*_faces)[i](0,1)][1], color);
 					canvas->_tft.drawLine(matrix_ptr[ (*_faces)[i](0,1)][0], matrix_ptr[ (*_faces)[i](0,1)][1], matrix_ptr[ (*_faces)[i](0,2)][0], matrix_ptr[ (*_faces)[i](0,2)][1], color);
 					canvas->_tft.drawLine(matrix_ptr[ (*_faces)[i](0,2)][0], matrix_ptr[ (*_faces)[i](0,2)][1], matrix_ptr[ (*_faces)[i](0,0)][0], matrix_ptr[ (*_faces)[i](0,0)][1], color);
@@ -86,6 +88,7 @@
 					// depending on the size of the surface of the triangle
 					// change the color toward brighter/darker
 					color = col * (surface * 0.001);
+					//If out of canvas, not print
 
 					canvas->_tft.fillTriangle(matrix_ptr[ (*_faces)[i](0,0)][0], matrix_ptr[ (*_faces)[i](0,0)][1],
 					matrix_ptr[ (*_faces)[i](0,1)][0], matrix_ptr[ (*_faces)[i](0,1)][1],
@@ -114,6 +117,8 @@
 				// don't draw triangle with negative surface value
 				if (!mesh::is_hidden( i , projnodes)) {
 					// draw triangle edges - 0 -> 1 -> 2 -> 0
+					//If out of canvas, not print
+
 					canvas->_tft.drawLine(matrix_ptr[mesh::faces[i][0]][0], matrix_ptr[mesh::faces[i][0]][1], matrix_ptr[mesh::faces[i][1]][0], matrix_ptr[mesh::faces[i][1]][1], color);
 					canvas->_tft.drawLine(matrix_ptr[mesh::faces[i][1]][0], matrix_ptr[mesh::faces[i][1]][1], matrix_ptr[mesh::faces[i][2]][0], matrix_ptr[mesh::faces[i][2]][1], color);
 					canvas->_tft.drawLine(matrix_ptr[mesh::faces[i][2]][0], matrix_ptr[mesh::faces[i][2]][1], matrix_ptr[mesh::faces[i][0]][0], matrix_ptr[mesh::faces[i][0]][1], color);
@@ -141,6 +146,7 @@
 					// depending on the size of the surface of the triangle
 					// change the color toward brighter/darker
 					color = col * (surface * 0.001);
+					//If out of canvas, not print
 
 					canvas->_tft.fillTriangle(matrix_ptr[mesh::faces[i][0]][0], matrix_ptr[mesh::faces[i][0]][1],
 					matrix_ptr[mesh::faces[i][1]][0], matrix_ptr[mesh::faces[i][1]][1],
@@ -201,6 +207,8 @@
 		}
 
 		do {
+			//If out of canvas, not print
+
 			canvas->_tft.drawPixel( matrix_ptr[i][0], matrix_ptr[i][1], color);
 		} while(i--);
 
@@ -291,11 +299,17 @@
 		}
 	}
 
-	void mesh::update( int rotx, int roty, int rotz ){
+	void mesh::update( float rotx, float roty, float rotz ){
+		update( rotx, roty, rotz, 0, 0, 0 );
+	}
 
+	void mesh::translate( float tx, float ty, float tz ){
+		update( 0, 0, 0, tx, ty, tz );
+	}
+
+	void mesh::update( float rotx, float roty, float rotz, float tx, float ty, float tz, float scale = 1 ){
 		Matrix <4, 4, float> m_rot ( trotx(rotx)*troty(roty)*trotz(rotz) );
-		mesh::update(m_rot);
-
+		mesh::update(m_rot*transl(  tx,  ty,  tz ));
 	}
 
 	//------------------------------------------------------------------------------------------//
