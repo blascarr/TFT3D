@@ -2,26 +2,6 @@
 #ifndef _MESH_h
 	#define _MESH_h  
 	
-	#define SERIALDEBUG Serial
-	
-    #ifdef TFTDEBUG
-		#define  DUMP(s, v)  { SERIALDEBUG.print(F(s)); SERIALDEBUG.print(v); }
-		#define  DUMPV(v)  { SERIALDEBUG.print(v); }
-		#define  DUMPS(s)    { SERIALDEBUG.print(F(s));}
-		#define  DUMPPRINTLN() { SERIALDEBUG.println();}
-		#define  DUMPTFT(s, v)  { SERIALDEBUG.print(F(s)); SERIALDEBUG.print(v); }
-		#define  DUMPVTFT(v)  { SERIALDEBUG.print(v); }
-		#define  DUMPSTFT(s)    { SERIALDEBUG.print(F(s));}
-    #else
-		#define  DUMP(s, v)
-		#define  DUMPV(v)
-		#define  DUMPS(s)
-		#define  DUMPPRINTLN() 
-		#define  DUMPTFT(s, v)
-		#define  DUMPVTFT(v)
-		#define  DUMPSTFT(s)
-    #endif
-	
 	static int loops;
 	#ifndef MAX_NODESIZE
 		#define MAX_NODESIZE 40
@@ -31,139 +11,296 @@
 		#define MAX_TRISIZE 40
 	#endif
 
-	#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__) && ( defined( __SD_H__ ) )
+	#if (defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)) && ( defined( __SD_H__ ) )
 		#pragma message("Warning!  You need more memory to execute 3DMesh Models. Use Arduino MEGA instead.")		
 	#endif
 
-	#if (defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)) && ( defined( __SD_H__ ) )
-		//#pragma message(Oops!  You need to #include "PDQ_ST7735_config.h".)
-	#endif
-
 	#ifdef VECTOR_H
-		#include "vectorMesh.h"
-
-		void mesh::draw_wireframe(TFT3D *canvas, const uint16_t color, boolean projnodes ){
-			
-			int i = facesize-1;
-			int (*matrix_ptr)[2];
-
-			if (projnodes){
-				matrix_ptr = mesh::proj_nodes;
-			}else{
-				matrix_ptr = mesh::old_nodes;
-			}
-			
-			do {
-				
-				if (!mesh::is_hidden( i , projnodes)) {
-					
-					// draw triangle edges - 0 -> 1 -> 2 -> 0
-					//If out of canvas, not print
-					
-					canvas->_tft.drawLine(matrix_ptr[ (*_faces)[i](0,0)][0], matrix_ptr[ (*_faces)[i](0,0)][1], matrix_ptr[ (*_faces)[i](0,1)][0], matrix_ptr[ (*_faces)[i](0,1)][1], color);
-					canvas->_tft.drawLine(matrix_ptr[ (*_faces)[i](0,1)][0], matrix_ptr[ (*_faces)[i](0,1)][1], matrix_ptr[ (*_faces)[i](0,2)][0], matrix_ptr[ (*_faces)[i](0,2)][1], color);
-					canvas->_tft.drawLine(matrix_ptr[ (*_faces)[i](0,2)][0], matrix_ptr[ (*_faces)[i](0,2)][1], matrix_ptr[ (*_faces)[i](0,0)][0], matrix_ptr[ (*_faces)[i](0,0)][1], color);
-				}
-			} while(i--);
-		}
-
-		void mesh::draw_flat_color( TFT3D *canvas, uint16_t color, boolean projnodes ){
-			
-			int i = facesize-1;
-			int surface;
-			uint16_t col = color;
-
-			int (*matrix_ptr)[2];
-
-			if (projnodes){
-				matrix_ptr = mesh::proj_nodes;
-			}else{
-				matrix_ptr = mesh::old_nodes;
-			}
-
-			do {
-				// draw only triangles facing us
-				if ((surface=mesh::shoelace( i, projnodes )) < 0) {
-					// this is an ugly hack but it 'somehow' fakes shading
-					// depending on the size of the surface of the triangle
-					// change the color toward brighter/darker
-					color = col * (surface * 0.001);
-					//If out of canvas, not print
-
-					canvas->_tft.fillTriangle(matrix_ptr[ (*_faces)[i](0,0)][0], matrix_ptr[ (*_faces)[i](0,0)][1],
-					matrix_ptr[ (*_faces)[i](0,1)][0], matrix_ptr[ (*_faces)[i](0,1)][1],
-					matrix_ptr[ (*_faces)[i](0,2)][0], matrix_ptr[ (*_faces)[i](0,2)][1], 
-					color);
-				}
-			} while(i--);
-		}
-
-	#else
-		#include "arrayMesh.h"
-		//------------------------------------------------------------------------------------------//
-		//------------------------------ Class Mesh Methods ----------------------------------------//
-
-
-		void mesh::draw_wireframe(TFT3D *canvas, const uint16_t color, boolean projnodes ){
-			int i = facesize-1;
-			int (*matrix_ptr)[2];
-			if (projnodes){
-				matrix_ptr = mesh::proj_nodes;
-			}else{
-				matrix_ptr = mesh::old_nodes;
-			}
-
-			do {
-				// don't draw triangle with negative surface value
-				if (!mesh::is_hidden( i , projnodes)) {
-					// draw triangle edges - 0 -> 1 -> 2 -> 0
-					//If out of canvas, not print
-
-					canvas->_tft.drawLine(matrix_ptr[mesh::faces[i][0]][0], matrix_ptr[mesh::faces[i][0]][1], matrix_ptr[mesh::faces[i][1]][0], matrix_ptr[mesh::faces[i][1]][1], color);
-					canvas->_tft.drawLine(matrix_ptr[mesh::faces[i][1]][0], matrix_ptr[mesh::faces[i][1]][1], matrix_ptr[mesh::faces[i][2]][0], matrix_ptr[mesh::faces[i][2]][1], color);
-					canvas->_tft.drawLine(matrix_ptr[mesh::faces[i][2]][0], matrix_ptr[mesh::faces[i][2]][1], matrix_ptr[mesh::faces[i][0]][0], matrix_ptr[mesh::faces[i][0]][1], color);
-				}
-			} while(i--);
-
-		};
-
-		void mesh::draw_flat_color( TFT3D *canvas, uint16_t color, boolean projnodes ){
-			int i = facesize-1;
-			int surface;
-			uint16_t col = color;
-
-			int (*matrix_ptr)[2];
-			if (projnodes){
-				matrix_ptr = mesh::proj_nodes;
-			}else{
-				matrix_ptr = mesh::old_nodes;
-			}
-
-			do {
-				// draw only triangles facing us
-				if ((surface=mesh::shoelace( i, projnodes )) < 0) {
-					// this is an ugly hack but it 'somehow' fakes shading
-					// depending on the size of the surface of the triangle
-					// change the color toward brighter/darker
-					color = col * (surface * 0.001);
-					//If out of canvas, not print
-
-					canvas->_tft.fillTriangle(matrix_ptr[mesh::faces[i][0]][0], matrix_ptr[mesh::faces[i][0]][1],
-					matrix_ptr[mesh::faces[i][1]][0], matrix_ptr[mesh::faces[i][1]][1],
-					matrix_ptr[mesh::faces[i][2]][0], matrix_ptr[mesh::faces[i][2]][1],
-					color);
-				}
-			} while(i--);
-
-		};
-
+		typedef Matrix <1, 3, Array<1,3,float> > ( vector3D );
 	#endif
 
-	void mesh::draw(TFT3D *canvas, uint16_t timer){
+	template<int n_rel = 3>
+	class generic_mesh{
+		public:
+			int proj_nodes[MAX_NODESIZE][2];
+			int old_nodes[MAX_NODESIZE][2];
+
+			Matrix<4, 4, Array<4,4,float> > m_world = { 1, 0, 0,0,    0, 1, 0, 0,   0, 0, 1, 0,    0, 0, 0, 1}; ; 
+			unsigned char SKIP_TICKS = 20;
+			unsigned char MAX_FRAMESKIP = 5;
+			int HALFW, HALFH;
+			uint16_t color[6]= {YELLOW,BLACK,YELLOW,BLACK,WHITE,GREEN };
+
+			long next_tick;
+			unsigned char draw_type = 1;          // 0 - vertex | 1 - wireframe | 2 - flat colors | ...
+			uint8_t nodesize = 0;
+			uint8_t facesize = 0;
+
+			#ifndef VECTOR_H
+				float _nodes [MAX_NODESIZE][3];
+				uint8_t _faces [MAX_TRISIZE][n_rel];
+			#else
+				Vector< vector3D > *_nodes;
+				Vector< uint8_t [n_rel] > *_faces;
+			#endif
+
+			#ifdef DEBUG_AXIS
+				Matrix<4, 4, Array<4,4,float> > old_world;
+			#endif
+
+			generic_mesh(){
+				generic_mesh::next_tick = millis();
+			}
+
+			//------------------------------------------------------------------------------------------//
+			//------------------------------ Mesh Config Methods ----------------------------------------//
+	
+			void setdraw_type( uint8_t drawtype ){ draw_type = drawtype; };
+			void setColors( uint8_t colorpos, uint16_t colour ) {color[ colorpos ] = colour; };
+			void setColors( uint16_t colour[6] ){ memcpy( color, colour, sizeof(uint16_t)*6); };
+			void setVertexColor( uint16_t front, uint16_t back ){
+				setColors(0 , front);
+				setColors(1 , back);
+			};
+			void setWireColor( uint16_t front, uint16_t back ){
+				setColors(2 , front);
+				setColors(3 , back);
+			};
+			void setClearColor( uint16_t clearcolor ){ setColors(4 , clearcolor); }
+			void setFlatColor( uint16_t flatcolor ) { setColors(5 , flatcolor); }
+			void setskip_tick( unsigned char skip_tick ){ SKIP_TICKS = skip_tick; }
+			void setframe_skip( unsigned char frame_skip ){ MAX_FRAMESKIP = frame_skip; }
+			void set_tftsize( int posw, int posh ){ set_tftpos(posw/2, posh/2); }
+
+			void set_tftpos( int posw, int posh ){
+				HALFH = posh;
+				HALFW = posw;
+			};
+			void set_world( Matrix<4, 4, Array<4,4,float> > mworld ){ m_world = mworld; }
+			
+			//-----------------------------------------------------------------------------------//
+			//------------------------------ Update Mesh ----------------------------------------//
+			//--- paramater f is a function for scale,rotation, translation management of mesh---//
+			
+			void update( Matrix <4, 4, Array<4,4,float> > matrix ){
+				loops = 0;
+
+				while( millis() > next_tick && loops < MAX_FRAMESKIP) {
+					
+					set_world(matrix);
+					update_mesh( matrix );
+					
+					next_tick += SKIP_TICKS;
+					loops++;
+				}
+					
+			};
+
+			//Function return transformation matrix manipulating Model
+
+			void update( Matrix<4, 4, Array<4,4,float> > *f() ){
+
+				loops = 0;
+				while( millis() > next_tick && loops < MAX_FRAMESKIP) {
+
+					// f returns a Matrix that change m_world
+					set_world( f() );
+					update_mesh( m_world );
+
+					next_tick += SKIP_TICKS;
+					loops++;
+				}
+			};
+
+			void update( void *f()  ){
+				loops = 0;
+				while( millis() > next_tick && loops < MAX_FRAMESKIP) {
+					f(); // Update m_world inside function f.
+
+					update_mesh( m_world );
+					next_tick += SKIP_TICKS;
+					loops++;
+				}
+					
+			};
+
+			void rotate( float gx, float gy, float gz ){ 
+				Matrix <3, 3, Array<3,3,float> > m_rot = ( m_world * trotx(gx)*troty(gy)*trotz(gz) ).Submatrix( Slice<0,3>(), Slice<0,3>() );
+				m_world.Submatrix( Slice<0,3>(), Slice<0,3>() )  = m_rot;
+				update( m_world ); 
+			}
+
+			void rotateTo( float rotx, float roty, float rotz ){ 
+				Matrix <3, 3, Array<3,3,float> > m_rot = ( trotx(rotx)*troty(roty)*trotz(rotz) ).Submatrix( Slice<0,3>(), Slice<0,3>() );
+				m_world.Submatrix( Slice<0,3>(), Slice<0,3>() )  = m_rot;
+				update( m_world ); 
+			}
+			
+			void move( float dx, float dy, float dz ){ 
+				float arr[3][1] = { {m_world(0,3)+dx}, {m_world(1,3)+dy}, {m_world(2,3)+dz} };
+				m_world.Submatrix( Slice<0,3>(), Slice<3,4>() )  = arr;
+				update( m_world ); 
+			}
+
+			void moveTo( float tx, float ty, float tz ){ 
+				float arr[3][1] = { {tx}, {ty}, {tz} };
+				m_world.Submatrix( Slice<0,3>(), Slice<3,4>() )  = arr;
+				update( m_world ); 
+			}
+
+			void update( float rotx, float roty, float rotz, float tx, float ty, float tz, float scale = 1 ){
+				Matrix <4, 4, Array<4,4,float> > m_rot ( trotx(rotx)*troty(roty)*trotz(rotz) );
+				update(m_rot*transl(  tx,  ty,  tz ));
+			};
+
+			virtual void update_mesh( Matrix <4, 4, Array<4,4,float> > m ){
+				for (int i=0; i< nodesize; i++) {
+
+					//float arrayNODES[4][1] = { _nodes[i][0] , _nodes[i][1], _nodes[i][2], 1 };
+
+					//Matrix <4, 1 > m_mesh (arrayNODES);
+
+					//Matrix <2, 1 > res = mesh2D( m_mesh, m );
+					//proj_nodes[i][0] = res(0,0);
+					//proj_nodes[i][1] = res(1,0);
+
+				}
+			};
+
+			#ifdef DEBUG_AXIS
+				void draw_axis( TFT3D *canvas, int d, uint16_t colorX = RED , uint16_t colorY = BLUE, uint16_t colorZ = GREEN ){
+					
+					if ( memcmp( &m_world, &old_world, sizeof(m_world) ) ){
+						//Define origin of model
+						Matrix <2, 1, Array<2,1,float> > old_origin = mesh2D( { 0 ,0, 0, 1}, old_world );
+						Matrix <2, 1, Array<2,1,float> > origin = mesh2D( { 0 ,0, 0, 1}, m_world );
+						Matrix <2, 1, Array<2,1,float> > resx;
+						Matrix <2, 1, Array<2,1,float> > resy;
+						Matrix <2, 1, Array<2,1,float> > resz;
+						//Clear old axis
+						resx = mesh2D( { d ,0, 0, 1}, old_world );
+						canvas->_tft.drawLine( old_origin(0,0) , old_origin(1,0) , resx(0,0), resx(1,0) , color[1]);
+						
+						resy = mesh2D( { 0 ,d, 0, 1}, old_world );
+						canvas->_tft.drawLine( old_origin(0,0) , old_origin(1,0), resy(0,0), resy(1,0) , color[1]);
+
+						resz = mesh2D( { 0 ,0, d, 1}, old_world );
+						canvas->_tft.drawLine( old_origin(0,0) , old_origin(1,0), resz(0,0), resz(1,0) , color[1]);
+
+						//Paint new axis
+						resx = mesh2D( { d ,0, 0, 1}, m_world );
+						canvas->_tft.drawLine( origin(0,0) , origin(1,0) , resx(0,0), resx(1,0) , colorX);
+
+						resy = mesh2D( { 0 ,d, 0, 1}, m_world );
+						canvas->_tft.drawLine( origin(0,0) , origin(1,0), resy(0,0), resy(1,0) , colorY);
+
+						resz = mesh2D( { 0 ,0, d, 1}, m_world );
+						canvas->_tft.drawLine( origin(0,0) , origin(1,0), resz(0,0), resz(1,0) , colorZ);
+
+						old_world = m_world;
+
+					}
+				};
+			#endif
+
+		protected:
+			Matrix <2, 1, Array<2,1,float> > mesh2D(Matrix <4, 1, Array<4,1,float> > v, Matrix <4, 4, Array<4,4,float> > m){
+
+				Matrix <4, 1, Array<4,1,float> > res = m*v;
+				float arrayNODES[2][1] =  { m(3,3)*((FOV * res(0,0)) / (FOV + res(2,0))) + HALFW   ,  m(3,3)*((FOV * res(1,0)) / (FOV + res(2,0))) + HALFH };
+				Matrix <2, 1, Array<2,1,float> > res2D (arrayNODES);
+
+				return res2D;
+			};
+	};
+
+	class mesh: public generic_mesh< 3 > {
+		public:
+			void draw( TFT3D *canvas, uint16_t timer = 10);
+			void update_mesh( Matrix <4, 4, Array<4,4,float> > m );
+			
+			void draw_vertex( TFT3D *canvas, const uint16_t color, boolean projnodes = true);
+			void draw_wireframe( TFT3D *canvas, const uint16_t color, boolean projnodes = true);
+			void draw_flat_color( TFT3D *canvas, uint16_t color, boolean projnodes = true);
+
+			void clear_dirty( TFT3D *canvas , uint16_t color = WHITE , boolean projnodes = true);
+
+			int shoelace( const unsigned char index, boolean projnodes = true );
+			bool is_hidden( const unsigned char index, boolean projnodes = true );
+			
+			#ifdef VECTOR_H
+
+				mesh::mesh(Vector< vector3D > *meshnodes, Vector< uint8_t [3] > *meshfaces ) {
+					mesh::next_tick = millis();
+					mesh::setnodes( meshnodes );
+					mesh::setfaces( meshfaces );
+				}
+
+				void set_mesh( Vector< vector3D > *meshnodes, Vector< uint8_t [3] >  *meshfaces){
+					mesh::next_tick = millis();
+					mesh::setnodes( meshnodes );
+					mesh::setfaces( meshfaces );
+				}
+
+				void setnodes( Vector< vector3D > *meshnodes){
+					_nodes = meshnodes;
+					nodesize = meshnodes->Size();
+				}
+
+				void setfaces( Vector< uint8_t [3] > *meshfaces ){
+					_faces = meshfaces;
+					facesize = _faces->Size();
+				}
+
+				void printdata(){
+					Serial.print("Size Nodes: ");
+					Serial.println( nodesize );
+					for(int i = 0; i < nodesize; i++) {
+						Serial << "NodeList: " << (*_nodes)[i] ;
+						Serial.println();
+					}
+					Serial.println();
+					Serial.println();
+					Serial.print("Size Faces: ");
+					Serial.println( facesize );
+					/*for(int i = 0; i < facesize ; i++) {
+						Serial << "FaceList: " << (*_faces)[i] ;
+						Serial.println();
+					}*/
+
+				}
+				
+			#else
+
+				mesh::mesh(float meshnodes[][3], uint8_t meshfaces[][3], int NSIZE , int TSIZE  ) {
+
+					mesh::next_tick = millis();
+					nodesize = NSIZE ;
+					facesize = TSIZE ;
+					mesh::setnodes(meshnodes, nodesize );
+					mesh::setfaces(meshfaces, facesize );
+				}
+
+				void setnodes( float meshnodes[][3] , int NODE_SIZE = MAX_NODESIZE ){
+					memcpy( _nodes, meshnodes, sizeof(float)* NODE_SIZE*3);
+					nodesize = NODE_SIZE ;
+				}
+
+				void setfaces( uint8_t meshfaces[][3], int TRI_SIZE = MAX_TRISIZE  ){
+					memcpy( _faces, meshfaces, sizeof(uint8_t)* TRI_SIZE*3);
+					facesize = TRI_SIZE ;
+				}
+
+				
+			#endif
+
+	};	
+
+	void mesh::draw( TFT3D *canvas, uint16_t timer){
 		//( (millis() - mesh::next_tick) > timer)
+
 		if (memcmp(mesh::old_nodes, mesh::proj_nodes, sizeof(mesh::proj_nodes)) ) {
 		// render frame
-
 			switch(mesh::draw_type) {
 				case 0: 
 					mesh::draw_vertex( canvas, color[0],0);
@@ -192,7 +329,6 @@
 			}
 			// copy projected nodes to old_nodes to check if we need to redraw next frame
 			memcpy(mesh::old_nodes, mesh::proj_nodes, sizeof(mesh::proj_nodes));
-
 		}
 	}
 
@@ -257,116 +393,10 @@
 		#endif
 	};
 
-	//-----------------------------------------------------------------------------------//
-	//------------------------------ Update Mesh ----------------------------------------//
-	//--- paramater f is a function for scale,rotation, translation management of mesh---//
-
-	void mesh::update( void *f()  ){
-		loops = 0;
-		while( millis() > next_tick && loops < MAX_FRAMESKIP) {
-			f();
-
-			update_mesh( m_world );
-			next_tick += SKIP_TICKS;
-			loops++;
-		}
-			
-	}
-
-	//Function return transformation matrix manipulating Model
-	void mesh::update( Matrix<4, 4, float> *f() ){
-
-		loops = 0;
-		while( millis() > next_tick && loops < mesh::MAX_FRAMESKIP) {
-			f();
-			//Matrix <4, 4, float> *m_rot ( f() );
-
-			update_mesh( m_world );
-
-			mesh::next_tick += mesh::SKIP_TICKS;
-			loops++;
-		}
-	}
-
-	void mesh::update( Matrix <4, 4, float> matrix ){
-		loops = 0;
-		
-		while( millis() > next_tick && loops < mesh::MAX_FRAMESKIP) {
-			update_mesh( matrix );
-
-			mesh::next_tick += mesh::SKIP_TICKS;
-			loops++;
-		}
-	}
-
-	void mesh::update( float rotx, float roty, float rotz ){
-		update( rotx, roty, rotz, 0, 0, 0 );
-	}
-
-	void mesh::translate( float tx, float ty, float tz ){
-		update( 0, 0, 0, tx, ty, tz );
-	}
-
-	void mesh::update( float rotx, float roty, float rotz, float tx, float ty, float tz, float scale = 1 ){
-		Matrix <4, 4, float> m_rot ( trotx(rotx)*troty(roty)*trotz(rotz) );
-		mesh::update(m_rot*transl(  tx,  ty,  tz ));
-	}
-
-	//------------------------------------------------------------------------------------------//
-	//------------------------------ Mesh Config Methods ----------------------------------------//
-	
-	void mesh::setdraw_type( uint8_t drawtype ){
-		mesh::draw_type = drawtype;
-	}
-
-	void mesh::setColors( uint8_t colorpos, uint16_t colour ){
-		color[ colorpos ] = colour;
-	}
-
-	void mesh::setColors( uint16_t colour[6] ){
-		memcpy( color, colour, sizeof(uint16_t)*6);
-	}
-
-	void mesh::setVertexColor( uint16_t front, uint16_t back ){
-		setColors(0 , front);
-		setColors(1 , back);
-	}
-
-	void mesh::setWireColor( uint16_t front, uint16_t back ){
-		setColors(2 , front);
-		setColors(3 , back);
-	}
-
-	void mesh::setClearColor( uint16_t clearcolor ){
-		setColors(4 , clearcolor);
-	}
-
-	void mesh::setFlatColor( uint16_t flatcolor ){
-		setColors(5 , flatcolor);
-	}
-
-	void mesh::setskip_tick( unsigned char skip_tick ){
-		mesh::SKIP_TICKS = skip_tick;
-	}
-
-	void mesh::setframe_skip( unsigned char frame_skip ){
-		mesh::MAX_FRAMESKIP = frame_skip;
-	}
-
-	void mesh::set_tftsize( int posw, int posh ){
-		set_tftpos(posw/2, posh/2);
-	}
-
-	void mesh::set_tftpos( int posw, int posh ){
-		mesh::HALFH = posh;
-		mesh::HALFW = posw;
-	}
-
-	void mesh::set_world( Matrix<4, 4, float> mworld ){
-		mesh::HALFW =  mworld(0,0);
-		mesh::HALFH =  mworld(1,0);
-		long z =  mworld(2,0);
-	}
-
+	#ifdef VECTOR_H
+		#include "vectorMesh.h"
+	#else
+		#include "arrayMesh.h"
+	#endif
 
 #endif

@@ -38,7 +38,9 @@
 		#define YELLOW  0xFFE0
 		#define ROSE 	0xF81F
 		#define WHITE   0xFFFF
-		
+		#ifndef TAB 
+			#define TAB 2
+		#endif
 	#endif	
 
 	#ifdef _ADAFRUIT_TFTLCD_H_
@@ -52,6 +54,9 @@
 		#define YELLOW  0xFFE0
 		#define ROSE 	0xF81F
 		#define WHITE   0xFFFF
+		#ifndef TAB 
+			#define TAB 0x9341
+		#endif
 	#endif
 
 	#ifdef _ADAFRUIT_ST7735H_ 
@@ -66,10 +71,6 @@
 		#define ROSE 	0x99AA66
 		#define WHITE 	0xFFFFFF
 		
-	#endif
-
-	#ifndef TAB 
-		#define TAB 2
 	#endif
 	
 	//----------------------------------------//
@@ -102,53 +103,53 @@
 
 	#ifndef _NOLUT_
 		const float ang2rad =180/PI;
-		Matrix<4,4, float> trotx( float angle ){
+		Matrix<4,4 > trotx( float angle ){
 			float arrayRot[4][4] = {{1,0,0,0},{0,cos_lut(angle),-sin_lut(angle),0},{0,sin_lut(angle),cos_lut(angle),0},{0,0,0,1}};
-			Matrix <4, 4, float> m (arrayRot);
+			Matrix <4, 4 > m (arrayRot);
 			return m;
 		}
 
-		Matrix<4,4, float> troty( float angle ){	
+		Matrix<4,4 > troty( float angle ){	
 			float arrayRot[4][4] = {{cos_lut(angle),0,sin_lut(angle),0},{0,1,0,0},{-sin_lut(angle),0,cos_lut(angle),0},{0,0,0,1}};
-			Matrix <4, 4, float> m (arrayRot);
+			Matrix <4, 4 > m (arrayRot);
 			return m;
 		}
 
-		Matrix<4,4, float> trotz( float angle ){
+		Matrix<4,4 > trotz( float angle ){
 			float arrayRot[4][4] = {{cos_lut(angle),-sin_lut(angle),0,0},{sin_lut(angle),cos_lut(angle),0},{0,0,1,0},{0,0,0,1}};
-			Matrix <4, 4, float> m (arrayRot);
+			Matrix <4, 4 > m (arrayRot);
 			return m;
 		}
 
-		Matrix<4,4, float> transl( float px, float py, float pz ){
+		Matrix<4,4 > transl( float px, float py, float pz ){
 			float arrayRot[4][4] = { {1,0,0,px}, {0,1,0,py}, {0,0,1,pz}, {0,0,0,1}};
-			Matrix <4, 4, float> m (arrayRot);
+			Matrix <4, 4 > m (arrayRot);
 			return m;
 		}
 	#else
 
 		const float ang2rad =180/PI;
-		Matrix<4,4, float> trotx( float angle ){
+		Matrix<4,4 > trotx( float angle ){
 			float arrayRot[4][4] = {{1,0,0,0},{0,cos(angle/ang2rad),-sin(angle/ang2rad),0},{0,sin(angle/ang2rad),cos(angle/ang2rad),0},{0,0,0,1}};
-			Matrix <4, 4, float> m (arrayRot);
+			Matrix <4, 4 > m (arrayRot);
 			return m;
 		}
 
-		Matrix<4,4, float> troty( float angle ){	
+		Matrix<4,4 > troty( float angle ){	
 			float arrayRot[4][4] = {{cos(angle/ang2rad),0,sin(angle/ang2rad),0},{0,1,0,0},{-sin(angle/ang2rad),0,cos(angle/ang2rad),0},{0,0,0,1}};
-			Matrix <4, 4, float> m (arrayRot);
+			Matrix <4, 4 > m (arrayRot);
 			return m;
 		}
 
-		Matrix<4,4, float> trotz( float angle ){
+		Matrix<4,4 > trotz( float angle ){
 			float arrayRot[4][4] = {{cos(angle/ang2rad),-sin(angle/ang2rad),0,0},{sin(angle/ang2rad),cos(angle/ang2rad),0},{0,0,1,0},{0,0,0,1}};
-			Matrix <4, 4, float> m (arrayRot);
+			Matrix <4, 4 > m (arrayRot);
 			return m;
 		}
 
-		Matrix<4,4, float> transl( float px, float py, float pz ){
+		Matrix<4,4 > transl( float px, float py, float pz ){
 			float arrayRot[4][4] = { {1,0,0,px}, {0,1,0,py}, {0,0,1,pz}, {0,0,0,1}};
-			Matrix <4, 4, float> m (arrayRot);
+			Matrix <4, 4 > m (arrayRot);
 			return m;
 		}
 	#endif

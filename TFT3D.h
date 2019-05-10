@@ -31,6 +31,7 @@
   #define _TFT3D_h  
 
     #include "BasicLinearAlgebra.h"
+    using namespace BLA;
     #include "TFT_config.h"
 
     #define SERIALDEBUG Serial
@@ -91,7 +92,7 @@
               UNKNOWN,
               TFT_ST7735,
               TFT_ILI9341,
-              TFT_SPFD548,
+              TFT_SPFD5408,
               TFT_PDQST7735,
               TFT_PDQILI9341
           };
@@ -124,9 +125,13 @@
           #endif
 
           #ifdef _ADAFRUIT_TFTLCD_H_
-            TFT3D( Adafruit_TFTLCD& tft ): _tft(tft), _tftype(TFType::TFT_SPFD548) {
+            TFT3D( TftSpfd5408& tft ): _tft(tft), _tftype(TFType::TFT_SPFD5408) {
                 
             }
+
+            //TFT3D( Adafruit_TFTLCD& tft ): _tft(tft), _tftype(TFType::TFT_SPFD548) {
+                
+            //}
           #endif
 
           #ifdef _PDQ_ILI9341H_
@@ -158,7 +163,8 @@
           #endif
 
           #ifdef _ADAFRUIT_TFTLCD_H_
-            Adafruit_TFTLCD& _tft;
+            TftSpfd5408& _tft;
+            //Adafruit_TFTLCD& _tft;
           #endif
 
           TFType getTFType(void){
@@ -214,8 +220,12 @@
               }
             #endif
             #ifdef _ADAFRUIT_TFTLCD_H_
-              if( _tftype == TFType::TFT_SPFD548 ){
-                _tft.begin( _tft.readID();
+              /*if( _tftype == TFType::TFT_SPFD5408 ){
+                _tft.begin( _tft.readID()); 
+              }*/
+
+              if( _tftype == TFType::TFT_SPFD5408 ){
+                _tft.begin( TAB ); 
               }
             #endif
             #ifdef _PDQ_ST7735H_
