@@ -126,31 +126,28 @@
 
 			void rotate( float gx, float gy, float gz ){ 
 				Matrix <3, 3, Array<3,3,float> > m_rot = ( m_world * trotx(gx)*troty(gy)*trotz(gz) ).Submatrix( Slice<0,3>(), Slice<0,3>() );
-				m_world.Submatrix( Slice<0,3>(), Slice<0,3>() )  = m_rot;
-				update( m_world ); 
+				
+				RPose( m_rot );
 			}
 
 			void rotateTo( float rotx, float roty, float rotz ){ 
 				Matrix <3, 3, Array<3,3,float> > m_rot = ( trotx(rotx)*troty(roty)*trotz(rotz) ).Submatrix( Slice<0,3>(), Slice<0,3>() );
-				m_world.Submatrix( Slice<0,3>(), Slice<0,3>() )  = m_rot;
-				update( m_world ); 
+				RPose( m_rot ); 
 			}
 			
 			void move( float dx, float dy, float dz ){ 
 				float arr[3][1] = { {m_world(0,3)+dx}, {m_world(1,3)+dy}, {m_world(2,3)+dz} };
-				m_world.Submatrix( Slice<0,3>(), Slice<3,4>() )  = arr;
-				update( m_world ); 
+				TPose( arr );
 			}
 
 			void moveTo( float tx, float ty, float tz ){ 
 				float arr[3][1] = { {tx}, {ty}, {tz} };
-				m_world.Submatrix( Slice<0,3>(), Slice<3,4>() )  = arr;
-				update( m_world ); 
+				TPose( arr );
 			}
 
 			void update( float rotx, float roty, float rotz, float tx, float ty, float tz, float scale = 1 ){
 				Matrix <4, 4, Array<4,4,float> > m_rot ( trotx(rotx)*troty(roty)*trotz(rotz) );
-				update(m_rot*transl(  tx,  ty,  tz ));
+				pose( m_rot*transl(  tx,  ty,  tz ) );
 			};
 
 			virtual void update_mesh( Matrix <4, 4, Array<4,4,float> > m ){
@@ -212,6 +209,20 @@
 
 				return res2D;
 			};
+
+			void pose( Matrix <4, 4, Array<4,4,float> > matrix ){
+				update( m_world ); 
+			}
+
+			void RPose( Matrix <3, 3, Array<3,3,float> > m_rot ){
+				m_world.Submatrix(  Slice<0,3>(), Slice<0,3>() )  = m_rot;
+				update( m_world ); 
+			}
+
+			void TPose( float m_trans[3][1] ){
+				m_world.Submatrix( Slice<0,3>(), Slice<3,4>() )  = m_trans;
+				update( m_world ); 
+			}
 	};
 
 	class mesh: public generic_mesh< 3 > {
@@ -398,5 +409,6 @@
 	#else
 		#include "arrayMesh.h"
 	#endif
+
 
 #endif
