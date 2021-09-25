@@ -13,6 +13,8 @@
 				void draw_vertex( TFT3D *canvas, const uint16_t color, boolean projnodes = true);
 				void draw_wireframe( TFT3D *canvas, const uint16_t color, boolean projnodes = true);
 				
+				bool outbound( uint8_t n_face[2] );
+				uint8_t pixelbound( uint8_t n_pixel );
 				#ifdef VECTOR_H
 				/*
 					meshline::meshline(Vector< vector3D > *meshnodes, Vector< uint8_t [2] > *meshfaces ) {

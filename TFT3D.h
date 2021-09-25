@@ -125,13 +125,13 @@
           #endif
 
           #ifdef _ADAFRUIT_TFTLCD_H_
-            TFT3D( TftSpfd5408& tft ): _tft(tft), _tftype(TFType::TFT_SPFD5408) {
-                
-            }
-
-            //TFT3D( Adafruit_TFTLCD& tft ): _tft(tft), _tftype(TFType::TFT_SPFD548) {
+            //TFT3D( TftSpfd5408& tft ): _tft(tft), _tftype(TFType::TFT_SPFD5408) {
                 
             //}
+
+            TFT3D( Adafruit_TFTLCD& tft ): _tft(tft), _tftype(TFType::TFT_SPFD5408) {
+                
+            }
           #endif
 
           #ifdef _PDQ_ILI9341H_
@@ -163,8 +163,8 @@
           #endif
 
           #ifdef _ADAFRUIT_TFTLCD_H_
-            TftSpfd5408& _tft;
-            //Adafruit_TFTLCD& _tft;
+            //TftSpfd5408& _tft;
+            Adafruit_TFTLCD& _tft;
           #endif
 
           TFType getTFType(void){

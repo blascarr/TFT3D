@@ -25,10 +25,10 @@
 			int proj_nodes[MAX_NODESIZE][2];
 			int old_nodes[MAX_NODESIZE][2];
 
-			Matrix<4, 4, Array<4,4,float> > m_world = { 1, 0, 0,0,    0, 1, 0, 0,   0, 0, 1, 0,    0, 0, 0, 1}; ; 
+			Matrix<4, 4, Array<4,4,float> > m_world = { 1, 0, 0,0,    0, 1, 0, 0,   0, 0, 1, 0,    0, 0, 0, 1}; 
 			unsigned char SKIP_TICKS = 20;
 			unsigned char MAX_FRAMESKIP = 5;
-			int HALFW, HALFH;
+			int HALFW, HALFH, TFT_W, TFT_H;
 			uint16_t color[6]= {YELLOW,BLACK,YELLOW,BLACK,WHITE,GREEN };
 
 			long next_tick;
@@ -70,7 +70,11 @@
 			void setFlatColor( uint16_t flatcolor ) { setColors(5 , flatcolor); }
 			void setskip_tick( unsigned char skip_tick ){ SKIP_TICKS = skip_tick; }
 			void setframe_skip( unsigned char frame_skip ){ MAX_FRAMESKIP = frame_skip; }
-			void set_tftsize( int posw, int posh ){ set_tftpos(posw/2, posh/2); }
+			void set_tftsize( int posw, int posh ){ 
+				TFT_W = posw;
+				TFT_H = posh;
+				set_tftpos(posw/2, posh/2); 
+			}
 
 			void set_tftpos( int posw, int posh ){
 				HALFH = posh;
@@ -125,19 +129,19 @@
 			};
 
 			void rotate( float gx, float gy, float gz ){ 
-				Matrix <3, 3, Array<3,3,float> > m_rot = ( m_world * trotx(gx)*troty(gy)*trotz(gz) ).Submatrix( Slice<0,3>(), Slice<0,3>() );
+				Matrix <3, 3, Array<3,3,float> > m_rot = ( m_world * trotx(gx)*troty(gy)*trotz(gz) ).Submatrix<4, 4>(0, 3);
 				
 				RPose( m_rot );
 			}
 
 			void rotateTo( float rotx, float roty, float rotz ){ 
-				Matrix <3, 3, Array<3,3,float> > m_rot = ( trotx(rotx)*troty(roty)*trotz(rotz) ).Submatrix( Slice<0,3>(), Slice<0,3>() );
+				Matrix <3, 3, Array<3,3,float> > m_rot = ( trotx(rotx)*troty(roty)*trotz(rotz) ).Submatrix<3, 3>(0, 3);
 				RPose( m_rot ); 
 			}
 			
 			void move( float dx, float dy, float dz ){ 
 				float arr[3][1] = { {m_world(0,3)+dx}, {m_world(1,3)+dy}, {m_world(2,3)+dz} };
-				TPose( arr );
+				TPose( arr ); // Esta mal, hay que cambiarla
 			}
 
 			void moveTo( float tx, float ty, float tz ){ 
@@ -145,7 +149,17 @@
 				TPose( arr );
 			}
 
-			void update( float rotx, float roty, float rotz, float tx, float ty, float tz, float scale = 1 ){
+			void XYZmove( float dx, float dy, float dz ){ 
+				float arr[3][1] = { {m_world(0,3)+dx}, {m_world(1,3)+dy}, {m_world(2,3)+dz} };
+				XYZPose( arr );
+			}
+
+			void XYZmoveTo( float tx, float ty, float tz ){ 
+				float arr[3][1] = { {tx}, {ty}, {tz} };
+				XYZPose( arr );
+			}
+
+			void update( float rotx, float roty, float rotz, float tx = 0, float ty = 0, float tz = 0, float scale = 1 ){
 				Matrix <4, 4, Array<4,4,float> > m_rot ( trotx(rotx)*troty(roty)*trotz(rotz) );
 				pose( m_rot*transl(  tx,  ty,  tz ) );
 			};
@@ -215,12 +229,24 @@
 			}
 
 			void RPose( Matrix <3, 3, Array<3,3,float> > m_rot ){
-				m_world.Submatrix(  Slice<0,3>(), Slice<0,3>() )  = m_rot;
+				m_world.Submatrix<3, 3>(0, 3)  = m_rot;
 				update( m_world ); 
 			}
 
 			void TPose( float m_trans[3][1] ){
-				m_world.Submatrix( Slice<0,3>(), Slice<3,4>() )  = m_trans;
+				//Matrix<4, 4, Array<4,4,float> > m_move = { 1, 0, 0,0,    0, 1, 0, 0,   0, 0, 1, 0,    0, 0, 0, 1};
+				//m_move.Submatrix( Slice<0,3>(), Slice<3,4>() )  = m_trans;
+				//m_world = m_move*m_world;
+				m_world(0,3)=m_trans[0][0];
+				m_world(1,3)=m_trans[1][0];
+				m_world(2,3)=m_trans[2][0];
+				update( m_world ); 
+			}
+
+			void XYZPose( float m_trans[3][1] ){
+				//float xyz_trans[3][1] = m_world.Inverse()*m_trans ;
+				
+				m_world.Submatrix<3, 1>(3, 4)  = m_trans;
 				update( m_world ); 
 			}
 	};
@@ -255,12 +281,12 @@
 
 				void setnodes( Vector< vector3D > *meshnodes){
 					_nodes = meshnodes;
-					nodesize = meshnodes->Size();
+					nodesize = meshnodes->size();
 				}
 
 				void setfaces( Vector< uint8_t [3] > *meshfaces ){
 					_faces = meshfaces;
-					facesize = _faces->Size();
+					facesize = _faces->size();
 				}
 
 				void printdata(){
@@ -393,14 +419,19 @@
 
 		// Clear area for Adafruit_GFX
 		#ifdef _ADAFRUIT_GFX_H
-			canvas->_tft.startWrite();
+
+			#ifdef _ADAFRUIT_ST7735H_ 
+				canvas->_tft.startWrite();
+			#endif
 			canvas->_tft.setAddrWindow(x0, y0, x1, y1);
 			h = (y1-y0);
 			w = (x1-x0)+1;
 			do{
 				//canvas->_tft.writePixels(color, w);
 			} while (h--);
-			canvas->_tft.endWrite();
+			#ifdef _ADAFRUIT_ST7735H_ 
+				canvas->_tft.endWrite();
+			#endif
 		#endif
 	};
 
